@@ -499,6 +499,31 @@ void ModuleEchoLink::handlePtyCommand(const std::string &full_command)
     cerr << "*** WARNING: Could not find EchoLink user \"" << callsign
          << "\" in PTY command \"DISC\"" << endl;
   }
+  else if (command == "MSG") // Send message to callsign
+  {
+    string callsign;
+    if (!(is >> callsign))
+    {
+      cerr << "*** WARNING: Malformed EchoLink PTY message command: \""
+           << full_command << "\"" << endl;
+      return;
+    }
+    vector<QsoImpl *>::iterator it;
+    for (it = qsos.begin(); it != qsos.end(); ++it)
+    {
+      if ((*it)->remoteCallsign() == callsign)
+      {
+        string msg;
+        std::getline(is, msg);
+        cout << "EchoLink: Sending message to user "
+             << (*it)->remoteCallsign() << endl;
+        (*it)->sendChatData(msg);
+        return;
+      }
+    }
+    cerr << "*** WARNING: Could not find EchoLink user \"" << callsign
+         << "\" in PTY command \"MSG\"" << endl;
+  }
   else
   {
     cerr << "*** WARNING: Unknown EchoLink PTY command received: \""
